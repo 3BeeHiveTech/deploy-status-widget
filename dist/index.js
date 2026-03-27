@@ -124,6 +124,8 @@ var import_react3 = require("react");
 // src/components/styles.ts
 var containerStyle = {
   position: "fixed",
+  top: 0,
+  left: 0,
   zIndex: 99999,
   width: 300,
   borderRadius: 12,

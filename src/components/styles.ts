@@ -20,6 +20,8 @@ import type { CSSProperties } from "react";
 /** Toast container — fixed position, dark glass panel */
 export const containerStyle: CSSProperties = {
   position: "fixed",
+  top: 0,
+  left: 0,
   zIndex: 99999,
   width: 300,
   borderRadius: 12,

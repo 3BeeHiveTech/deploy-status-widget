@@ -88,6 +88,8 @@ import { useState as useState3, useMemo } from "react";
 // src/components/styles.ts
 var containerStyle = {
   position: "fixed",
+  top: 0,
+  left: 0,
   zIndex: 99999,
   width: 300,
   borderRadius: 12,
