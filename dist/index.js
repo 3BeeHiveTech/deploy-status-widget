@@ -428,32 +428,6 @@ function StatusToast({
 
 // src/components/DeployStatusWidget.tsx
 var import_jsx_runtime3 = require("react/jsx-runtime");
-var DISMISSED_KEY = "deploy-widget-dismissed";
-function computeFingerprint(data) {
-  return data.checks.map((c) => `${c.type}:${c.label}:${c.status}`).sort().join("|");
-}
-function getDismissedFingerprint() {
-  if (typeof window === "undefined") return null;
-  try {
-    return localStorage.getItem(DISMISSED_KEY);
-  } catch {
-    return null;
-  }
-}
-function setDismissedFingerprint(fingerprint) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(DISMISSED_KEY, fingerprint);
-  } catch {
-  }
-}
-function clearDismissedFingerprint() {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.removeItem(DISMISSED_KEY);
-  } catch {
-  }
-}
 function DeployStatusWidget({
   apiPath = "/api/deploy-status",
   pollInterval = 3e4,
@@ -462,26 +436,9 @@ function DeployStatusWidget({
   const { data, error } = useDeployStatus(apiPath, pollInterval);
   const { position, onDragStop } = usePersistedPosition();
   const [dismissed, setDismissed] = (0, import_react5.useState)(false);
-  const fingerprint = (0, import_react5.useMemo)(
-    () => data ? computeFingerprint(data) : null,
-    [data]
-  );
-  (0, import_react5.useEffect)(() => {
-    if (!fingerprint) return;
-    const saved = getDismissedFingerprint();
-    if (saved === fingerprint) {
-      setDismissed(true);
-    } else {
-      setDismissed(false);
-      clearDismissedFingerprint();
-    }
-  }, [fingerprint]);
   const handleDismiss = (0, import_react5.useCallback)(() => {
-    if (fingerprint) {
-      setDismissedFingerprint(fingerprint);
-    }
     setDismissed(true);
-  }, [fingerprint]);
+  }, []);
   if (!data || error || !data.deploying || dismissed) {
     return null;
   }

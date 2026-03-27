@@ -1,5 +1,5 @@
 // src/components/DeployStatusWidget.tsx
-import { useState as useState5, useEffect as useEffect3, useMemo as useMemo3, useCallback as useCallback3 } from "react";
+import { useState as useState5, useCallback as useCallback3 } from "react";
 
 // src/hooks/useDeployStatus.ts
 import { useState, useEffect, useCallback } from "react";
@@ -392,32 +392,6 @@ function StatusToast({
 
 // src/components/DeployStatusWidget.tsx
 import { jsx as jsx3 } from "react/jsx-runtime";
-var DISMISSED_KEY = "deploy-widget-dismissed";
-function computeFingerprint(data) {
-  return data.checks.map((c) => `${c.type}:${c.label}:${c.status}`).sort().join("|");
-}
-function getDismissedFingerprint() {
-  if (typeof window === "undefined") return null;
-  try {
-    return localStorage.getItem(DISMISSED_KEY);
-  } catch {
-    return null;
-  }
-}
-function setDismissedFingerprint(fingerprint) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(DISMISSED_KEY, fingerprint);
-  } catch {
-  }
-}
-function clearDismissedFingerprint() {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.removeItem(DISMISSED_KEY);
-  } catch {
-  }
-}
 function DeployStatusWidget({
   apiPath = "/api/deploy-status",
   pollInterval = 3e4,
@@ -426,26 +400,9 @@ function DeployStatusWidget({
   const { data, error } = useDeployStatus(apiPath, pollInterval);
   const { position, onDragStop } = usePersistedPosition();
   const [dismissed, setDismissed] = useState5(false);
-  const fingerprint = useMemo3(
-    () => data ? computeFingerprint(data) : null,
-    [data]
-  );
-  useEffect3(() => {
-    if (!fingerprint) return;
-    const saved = getDismissedFingerprint();
-    if (saved === fingerprint) {
-      setDismissed(true);
-    } else {
-      setDismissed(false);
-      clearDismissedFingerprint();
-    }
-  }, [fingerprint]);
   const handleDismiss = useCallback3(() => {
-    if (fingerprint) {
-      setDismissedFingerprint(fingerprint);
-    }
     setDismissed(true);
-  }, [fingerprint]);
+  }, []);
   if (!data || error || !data.deploying || dismissed) {
     return null;
   }

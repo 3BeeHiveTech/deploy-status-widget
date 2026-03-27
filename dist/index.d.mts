@@ -15,10 +15,10 @@ interface DeployStatusWidgetProps {
  * Top-level deploy status widget component.
  *
  * Renders a floating, draggable, dismissable toast when deployments
- * are in progress. Renders nothing when idle, on error, or dismissed.
+ * are in progress. Renders nothing when idle or on error.
  *
- * Dismiss logic: stores a fingerprint of current check statuses.
- * The widget re-appears when the fingerprint changes (new deployment).
+ * Dismiss is session-only (React state). Refreshing the page
+ * resets the dismiss — the widget always shows if something is building.
  */
 declare function DeployStatusWidget({ apiPath, pollInterval, defaultPosition, }: DeployStatusWidgetProps): react_jsx_runtime.JSX.Element | null;
 
