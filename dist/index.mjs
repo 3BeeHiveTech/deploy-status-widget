@@ -363,7 +363,7 @@ function StatusToast({
               style: dragHandleStyle,
               children: /* @__PURE__ */ jsxs2("div", { style: headerTitleStyle, children: [
                 /* @__PURE__ */ jsx2("div", { style: headerDotStyle }),
-                /* @__PURE__ */ jsx2("span", { children: "Deploying" })
+                /* @__PURE__ */ jsx2("span", { children: "Sta arrivando un aggiornamento!" })
               ] })
             }
           ),

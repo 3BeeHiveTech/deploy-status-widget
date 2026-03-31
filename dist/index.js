@@ -399,7 +399,7 @@ function StatusToast({
               style: dragHandleStyle,
               children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: headerTitleStyle, children: [
                 /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: headerDotStyle }),
-                /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { children: "Deploying" })
+                /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { children: "Sta arrivando un aggiornamento!" })
               ] })
             }
           ),

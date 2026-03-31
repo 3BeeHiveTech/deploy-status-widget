@@ -103,7 +103,7 @@ export function StatusToast({
           >
             <div style={headerTitleStyle}>
               <div style={headerDotStyle} />
-              <span>Deploying</span>
+              <span>Sta arrivando un aggiornamento!</span>
             </div>
           </div>
 
