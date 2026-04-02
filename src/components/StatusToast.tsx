@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import Draggable from "react-draggable";
 import type { DraggableEvent, DraggableData } from "react-draggable";
 import type { StatusResponse } from "../types";
@@ -86,7 +87,7 @@ export function StatusToast({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return (
+  const toast = (
     <Draggable
       handle=".deploy-widget-handle"
       bounds="body"
@@ -135,4 +136,8 @@ export function StatusToast({
       </div>
     </Draggable>
   );
+
+  /* Portal to document.body to escape ancestor stacking contexts */
+  if (typeof document === "undefined") return toast;
+  return createPortal(toast, document.body);
 }

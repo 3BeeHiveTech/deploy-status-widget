@@ -80,6 +80,7 @@ function usePersistedPosition(storageKey = DEFAULT_STORAGE_KEY) {
 
 // src/components/StatusToast.tsx
 import { useState as useState4, useRef, useEffect as useEffect2, useMemo as useMemo2 } from "react";
+import { createPortal } from "react-dom";
 import Draggable from "react-draggable";
 
 // src/components/CheckRow.tsx
@@ -346,7 +347,7 @@ function StatusToast({
       y: 20
     };
   }, []);
-  return /* @__PURE__ */ jsx2(
+  const toast = /* @__PURE__ */ jsx2(
     Draggable,
     {
       handle: ".deploy-widget-handle",
@@ -388,6 +389,8 @@ function StatusToast({
       ] })
     }
   );
+  if (typeof document === "undefined") return toast;
+  return createPortal(toast, document.body);
 }
 
 // src/components/DeployStatusWidget.tsx

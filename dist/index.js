@@ -116,6 +116,7 @@ function usePersistedPosition(storageKey = DEFAULT_STORAGE_KEY) {
 
 // src/components/StatusToast.tsx
 var import_react4 = require("react");
+var import_react_dom = require("react-dom");
 var import_react_draggable = __toESM(require("react-draggable"));
 
 // src/components/CheckRow.tsx
@@ -382,7 +383,7 @@ function StatusToast({
       y: 20
     };
   }, []);
-  return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+  const toast = /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
     import_react_draggable.default,
     {
       handle: ".deploy-widget-handle",
@@ -424,6 +425,8 @@ function StatusToast({
       ] })
     }
   );
+  if (typeof document === "undefined") return toast;
+  return (0, import_react_dom.createPortal)(toast, document.body);
 }
 
 // src/components/DeployStatusWidget.tsx
