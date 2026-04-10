@@ -91,7 +91,7 @@ var containerStyle = {
   position: "fixed",
   top: 0,
   left: 0,
-  zIndex: 99999,
+  zIndex: 999,
   width: 300,
   borderRadius: 12,
   backgroundColor: "#09202B",
