@@ -22,7 +22,7 @@ export const containerStyle: CSSProperties = {
   position: "fixed",
   top: 0,
   left: 0,
-  zIndex: 999,
+  zIndex: 12345678,
   width: 300,
   borderRadius: 12,
   backgroundColor: "#09202B", /* dark-mode-blue-300 */

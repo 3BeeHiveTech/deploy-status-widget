@@ -111,7 +111,7 @@ Overall assessment and merge readiness.
 - [ ] **No Tailwind classes**: No `className` with Tailwind utilities
 - [ ] **No external CSS**: No CSS file imports
 - [ ] **Dark theme palette**: Colors from the I Love Natura palette only
-- [ ] **High z-index**: Widget uses `z-index: 99999` to float above host app content
+- [ ] **High z-index**: Widget uses `z-index: 12345678` to float above host app content (must be above navbar/toolbar z-index of 123456)
 
 ## Feedback Format
 
