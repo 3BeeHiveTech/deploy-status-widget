@@ -71,6 +71,14 @@ export function StatusToast({
     };
   }, []);
 
+  /* Force z-index with !important — React inline styles don't support !important,
+     so we apply it imperatively after mount to win over any host-app CSS rules */
+  useEffect(() => {
+    if (nodeRef.current) {
+      nodeRef.current.style.setProperty("z-index", "999999", "important");
+    }
+  }, []);
+
   const handleDragStop = (_e: DraggableEvent, dragData: DraggableData) => {
     if (onDragStop) {
       onDragStop(dragData.x, dragData.y);

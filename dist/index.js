@@ -127,7 +127,7 @@ var containerStyle = {
   position: "fixed",
   top: 0,
   left: 0,
-  zIndex: 12345678,
+  zIndex: 999999,
   width: 300,
   borderRadius: 12,
   backgroundColor: "#09202B",
@@ -370,6 +370,11 @@ function StatusToast({
         styleRef.current = null;
       }
     };
+  }, []);
+  (0, import_react4.useEffect)(() => {
+    if (nodeRef.current) {
+      nodeRef.current.style.setProperty("z-index", "999999", "important");
+    }
   }, []);
   const handleDragStop = (_e, dragData) => {
     if (onDragStop) {
