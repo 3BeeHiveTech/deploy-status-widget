@@ -1,5 +1,5 @@
 ---
-name: Feature Architect
+name: deploy-status-widget-coder
 description: |
   Use this agent to design and implement new features and enhancements for the deploy-status-widget npm package, including API clients, React components, hooks, and build configuration.
 

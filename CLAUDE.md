@@ -87,12 +87,13 @@ npm run check-types  # TypeScript check
 
 ## Subagents
 
-Specialized agents are available in `.claude/agents/` for specific workflows:
+Standardized agent triad for Dynamic Workflow (Opus 4.8) — slug `deploy-status-widget`:
 
-| Agent File | Name | Use When |
+| Agent File | Role | Use When |
 |---|---|---|
-| `deploy-widget-feature-architect.md` | Feature Architect | Designing and implementing new features (API clients, components, hooks, build config) |
-| `deploy-widget-pr-reviewer.md` | PR Reviewer | Reviewing code changes for security, type safety, build correctness, and consumer compatibility |
+| `deploy-status-widget-architect.md` | Architect | System designer — owns `DEPLOY_STATUS_WIDGET_ARCHITECTURE.md` |
+| `deploy-status-widget-coder.md` | Coder | Implementer — new features (API clients, components, hooks, build config) |
+| `deploy-status-widget-reviewer.md` | Reviewer | Adversarial challenger / PR reviewer — security, type safety, build correctness |
 
 ## Security
 
