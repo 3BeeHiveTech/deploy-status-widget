@@ -1,5 +1,5 @@
 ---
-name: PR Reviewer
+name: deploy-status-widget-reviewer
 description: |
   Use this agent to review code changes or pull requests for the deploy-status-widget npm package. It checks for security, type safety, build correctness, and consumer app compatibility.
 
