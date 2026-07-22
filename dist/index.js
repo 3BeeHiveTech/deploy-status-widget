@@ -592,21 +592,43 @@ var STATUS_LABELS = {
 function DeployStatusWidget({
   apiPath = "/api/deploy-status",
   pollInterval = 3e4,
-  defaultPosition
+  defaultPosition,
+  hideTrigger = false,
+  open,
+  onOpenChange,
+  onAggregateChange
 }) {
   const { data, error } = useDeployStatus(apiPath, pollInterval);
-  const [expanded, setExpanded] = (0, import_react5.useState)(false);
+  const [uncontrolledExpanded, setUncontrolledExpanded] = (0, import_react5.useState)(false);
+  const isControlled = open !== void 0;
+  const expanded = isControlled ? open : uncontrolledExpanded;
   const aggregate = (0, import_react5.useMemo)(
     () => data ? getAggregateStatus(data.checks) : null,
     [data]
   );
-  const handleExpand = (0, import_react5.useCallback)(() => setExpanded(true), []);
-  const handleCollapse = (0, import_react5.useCallback)(() => setExpanded(false), []);
+  const onAggregateChangeRef = (0, import_react5.useRef)(onAggregateChange);
+  onAggregateChangeRef.current = onAggregateChange;
+  const aggregateKind = aggregate?.kind ?? null;
+  (0, import_react5.useEffect)(() => {
+    onAggregateChangeRef.current?.(aggregateKind);
+  }, [aggregateKind]);
+  const setExpanded = (0, import_react5.useCallback)(
+    (next) => {
+      if (!isControlled) setUncontrolledExpanded(next);
+      onOpenChange?.(next);
+    },
+    [isControlled, onOpenChange]
+  );
+  const handleExpand = (0, import_react5.useCallback)(() => setExpanded(true), [setExpanded]);
+  const handleCollapse = (0, import_react5.useCallback)(() => setExpanded(false), [setExpanded]);
   if (!data || error || !aggregate) {
     return null;
   }
   const label = STATUS_LABELS[aggregate.kind];
   if (!expanded) {
+    if (hideTrigger) {
+      return null;
+    }
     return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
       StatusIcon,
       {

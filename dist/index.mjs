@@ -1,5 +1,5 @@
 // src/components/DeployStatusWidget.tsx
-import { useState as useState4, useCallback as useCallback2, useMemo as useMemo3 } from "react";
+import { useState as useState4, useCallback as useCallback2, useMemo as useMemo3, useEffect as useEffect4, useRef as useRef3 } from "react";
 
 // src/hooks/useDeployStatus.ts
 import { useState, useEffect, useCallback } from "react";
@@ -556,21 +556,43 @@ var STATUS_LABELS = {
 function DeployStatusWidget({
   apiPath = "/api/deploy-status",
   pollInterval = 3e4,
-  defaultPosition
+  defaultPosition,
+  hideTrigger = false,
+  open,
+  onOpenChange,
+  onAggregateChange
 }) {
   const { data, error } = useDeployStatus(apiPath, pollInterval);
-  const [expanded, setExpanded] = useState4(false);
+  const [uncontrolledExpanded, setUncontrolledExpanded] = useState4(false);
+  const isControlled = open !== void 0;
+  const expanded = isControlled ? open : uncontrolledExpanded;
   const aggregate = useMemo3(
     () => data ? getAggregateStatus(data.checks) : null,
     [data]
   );
-  const handleExpand = useCallback2(() => setExpanded(true), []);
-  const handleCollapse = useCallback2(() => setExpanded(false), []);
+  const onAggregateChangeRef = useRef3(onAggregateChange);
+  onAggregateChangeRef.current = onAggregateChange;
+  const aggregateKind = aggregate?.kind ?? null;
+  useEffect4(() => {
+    onAggregateChangeRef.current?.(aggregateKind);
+  }, [aggregateKind]);
+  const setExpanded = useCallback2(
+    (next) => {
+      if (!isControlled) setUncontrolledExpanded(next);
+      onOpenChange?.(next);
+    },
+    [isControlled, onOpenChange]
+  );
+  const handleExpand = useCallback2(() => setExpanded(true), [setExpanded]);
+  const handleCollapse = useCallback2(() => setExpanded(false), [setExpanded]);
   if (!data || error || !aggregate) {
     return null;
   }
   const label = STATUS_LABELS[aggregate.kind];
   if (!expanded) {
+    if (hideTrigger) {
+      return null;
+    }
     return /* @__PURE__ */ jsx4(
       StatusIcon,
       {
