@@ -1,5 +1,5 @@
 // src/components/DeployStatusWidget.tsx
-import { useState as useState5, useCallback as useCallback3, useMemo as useMemo4 } from "react";
+import { useState as useState5, useCallback as useCallback3, useMemo as useMemo3 } from "react";
 
 // src/hooks/useDeployStatus.ts
 import { useState, useEffect, useCallback } from "react";
@@ -79,7 +79,7 @@ function usePersistedPosition(storageKey = DEFAULT_STORAGE_KEY) {
 }
 
 // src/components/StatusToast.tsx
-import { useState as useState4, useRef, useEffect as useEffect2, useMemo as useMemo2 } from "react";
+import { useState as useState4, useRef, useEffect as useEffect2, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import Draggable from "react-draggable";
 
@@ -339,6 +339,17 @@ function CheckRow({ check }) {
 
 // src/components/StatusToast.tsx
 import { jsx as jsx2, jsxs as jsxs2 } from "react/jsx-runtime";
+var TOAST_WIDTH = 300;
+var VIEWPORT_MARGIN = 12;
+function clampToViewport(desired, height) {
+  if (typeof window === "undefined") return desired;
+  const maxX = Math.max(VIEWPORT_MARGIN, window.innerWidth - TOAST_WIDTH - VIEWPORT_MARGIN);
+  const maxY = Math.max(VIEWPORT_MARGIN, window.innerHeight - height - VIEWPORT_MARGIN);
+  return {
+    x: Math.min(Math.max(desired.x, VIEWPORT_MARGIN), maxX),
+    y: Math.min(Math.max(desired.y, VIEWPORT_MARGIN), maxY)
+  };
+}
 function StatusToast({
   data,
   aggregate,
@@ -348,13 +359,20 @@ function StatusToast({
   onDragStop
 }) {
   const [dismissHovered, setDismissHovered] = useState4(false);
+  const nodeRef = useRef(null);
+  const styleRef = useRef(null);
   const headerDot = {
     ...headerDotStyle,
     backgroundColor: aggregate.color,
     animation: aggregate.animated ? "dsw-pulse 1.5s ease-in-out infinite" : "none"
   };
-  const nodeRef = useRef(null);
-  const styleRef = useRef(null);
+  const [pos, setPos] = useState4(() => {
+    const desired = position ?? {
+      x: typeof window !== "undefined" ? window.innerWidth - TOAST_WIDTH - VIEWPORT_MARGIN : 800,
+      y: VIEWPORT_MARGIN
+    };
+    return clampToViewport(desired, 0);
+  });
   useEffect2(() => {
     if (typeof document === "undefined") return;
     const existingStyle = document.getElementById("dsw-keyframes");
@@ -376,25 +394,32 @@ function StatusToast({
       nodeRef.current.style.setProperty("z-index", "999999", "important");
     }
   }, []);
+  useLayoutEffect(() => {
+    const reclamp = () => {
+      const height = nodeRef.current?.offsetHeight ?? 0;
+      setPos((prev) => clampToViewport(prev, height));
+    };
+    reclamp();
+    window.addEventListener("resize", reclamp);
+    return () => window.removeEventListener("resize", reclamp);
+  }, []);
+  const handleDrag = (_e, dragData) => {
+    setPos({ x: dragData.x, y: dragData.y });
+  };
   const handleDragStop = (_e, dragData) => {
+    const clamped = clampToViewport({ x: dragData.x, y: dragData.y }, nodeRef.current?.offsetHeight ?? 0);
+    setPos(clamped);
     if (onDragStop) {
-      onDragStop(dragData.x, dragData.y);
+      onDragStop(clamped.x, clamped.y);
     }
   };
-  const defaultPosition = useMemo2(() => {
-    if (position) return position;
-    return {
-      x: typeof window !== "undefined" ? window.innerWidth - 320 : 800,
-      y: 20
-    };
-  }, []);
   const toast = /* @__PURE__ */ jsx2(
     Draggable,
     {
       handle: ".deploy-widget-handle",
-      bounds: "body",
       nodeRef,
-      defaultPosition,
+      position: pos,
+      onDrag: handleDrag,
       onStop: handleDragStop,
       children: /* @__PURE__ */ jsxs2("div", { ref: nodeRef, style: containerStyle, children: [
         /* @__PURE__ */ jsxs2("div", { style: headerStyle, children: [
@@ -435,7 +460,7 @@ function StatusToast({
 }
 
 // src/components/StatusIcon.tsx
-import { useRef as useRef2, useEffect as useEffect3, useMemo as useMemo3 } from "react";
+import { useRef as useRef2, useEffect as useEffect3, useMemo as useMemo2 } from "react";
 import { createPortal as createPortal2 } from "react-dom";
 import Draggable2 from "react-draggable";
 import { jsx as jsx3, jsxs as jsxs3 } from "react/jsx-runtime";
@@ -470,7 +495,7 @@ function StatusIcon({
       nodeRef.current.style.setProperty("z-index", "999999", "important");
     }
   }, []);
-  const defaultPosition = useMemo3(() => {
+  const defaultPosition = useMemo2(() => {
     if (position) return position;
     return {
       x: typeof window !== "undefined" ? window.innerWidth - 190 : 800,
@@ -573,7 +598,7 @@ function DeployStatusWidget({
   const { data, error } = useDeployStatus(apiPath, pollInterval);
   const { position, onDragStop } = usePersistedPosition();
   const [expanded, setExpanded] = useState5(false);
-  const aggregate = useMemo4(
+  const aggregate = useMemo3(
     () => data ? getAggregateStatus(data.checks) : null,
     [data]
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import Draggable from "react-draggable";
 import type { DraggableEvent, DraggableData } from "react-draggable";
@@ -18,6 +18,27 @@ import {
   headerDotStyle,
   keyframesCSS,
 } from "./styles";
+
+/** Fixed panel width (see containerStyle) + a viewport safety margin. */
+const TOAST_WIDTH = 300;
+const VIEWPORT_MARGIN = 12;
+
+/**
+ * Clamp a desired top-left position so the ENTIRE panel stays inside the
+ * viewport. The collapsed pill is small and typically sits near the right edge,
+ * but the expanded panel is wider (300px) and taller, so reusing the pill's
+ * anchor verbatim pushed the panel off-screen (right/bottom). We clamp against
+ * the measured height so it always fits.
+ */
+function clampToViewport(desired: { x: number; y: number }, height: number): { x: number; y: number } {
+  if (typeof window === "undefined") return desired;
+  const maxX = Math.max(VIEWPORT_MARGIN, window.innerWidth - TOAST_WIDTH - VIEWPORT_MARGIN);
+  const maxY = Math.max(VIEWPORT_MARGIN, window.innerHeight - height - VIEWPORT_MARGIN);
+  return {
+    x: Math.min(Math.max(desired.x, VIEWPORT_MARGIN), maxX),
+    y: Math.min(Math.max(desired.y, VIEWPORT_MARGIN), maxY),
+  };
+}
 
 interface StatusToastProps {
   data: StatusResponse;
@@ -42,8 +63,8 @@ interface StatusToastProps {
  * - Collapse (✕) button — folds the panel back into the icon
  * - List of CheckRow components
  *
- * Uses react-draggable for drag support with bounds="body".
- * Injects keyframe CSS via a <style> tag for the pulse animation.
+ * Position is controlled + clamped to the viewport (on mount, on resize, and on
+ * drag-stop) so the panel can never open or be dragged off-screen.
  */
 export function StatusToast({
   data,
@@ -54,6 +75,8 @@ export function StatusToast({
   onDragStop,
 }: StatusToastProps) {
   const [dismissHovered, setDismissHovered] = useState(false);
+  const nodeRef = useRef<HTMLDivElement>(null);
+  const styleRef = useRef<HTMLStyleElement | null>(null);
 
   /* Header dot mirrors the collapsed icon's traffic-light color and only
      pulses while something is in flight. */
@@ -64,8 +87,16 @@ export function StatusToast({
       ? "dsw-pulse 1.5s ease-in-out infinite"
       : "none",
   };
-  const nodeRef = useRef<HTMLDivElement>(null);
-  const styleRef = useRef<HTMLStyleElement | null>(null);
+
+  /* Controlled position, initialized to a clamped anchor (top-right by default).
+     Height is unknown at first paint (0) → re-clamped in the layout effect. */
+  const [pos, setPos] = useState<{ x: number; y: number }>(() => {
+    const desired = position ?? {
+      x: typeof window !== "undefined" ? window.innerWidth - TOAST_WIDTH - VIEWPORT_MARGIN : 800,
+      y: VIEWPORT_MARGIN,
+    };
+    return clampToViewport(desired, 0);
+  });
 
   /* Inject keyframes CSS on mount */
   useEffect(() => {
@@ -97,28 +128,37 @@ export function StatusToast({
     }
   }, []);
 
-  const handleDragStop = (_e: DraggableEvent, dragData: DraggableData) => {
-    if (onDragStop) {
-      onDragStop(dragData.x, dragData.y);
-    }
-  };
-
-  /* Calculate default position: top-right corner (lazy to avoid hydration mismatch) */
-  const defaultPosition = useMemo(() => {
-    if (position) return position;
-    return {
-      x: typeof window !== "undefined" ? window.innerWidth - 320 : 800,
-      y: 20,
+  /* Re-clamp once the real height is known and whenever the viewport resizes, so
+     the panel is always fully visible regardless of the (small) pill's anchor. */
+  useLayoutEffect(() => {
+    const reclamp = () => {
+      const height = nodeRef.current?.offsetHeight ?? 0;
+      setPos((prev) => clampToViewport(prev, height));
     };
+    reclamp();
+    window.addEventListener("resize", reclamp);
+    return () => window.removeEventListener("resize", reclamp);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleDrag = (_e: DraggableEvent, dragData: DraggableData) => {
+    setPos({ x: dragData.x, y: dragData.y });
+  };
+
+  const handleDragStop = (_e: DraggableEvent, dragData: DraggableData) => {
+    const clamped = clampToViewport({ x: dragData.x, y: dragData.y }, nodeRef.current?.offsetHeight ?? 0);
+    setPos(clamped);
+    if (onDragStop) {
+      onDragStop(clamped.x, clamped.y);
+    }
+  };
 
   const toast = (
     <Draggable
       handle=".deploy-widget-handle"
-      bounds="body"
       nodeRef={nodeRef as React.RefObject<HTMLElement>}
-      defaultPosition={defaultPosition}
+      position={pos}
+      onDrag={handleDrag}
       onStop={handleDragStop}
     >
       <div ref={nodeRef} style={containerStyle}>

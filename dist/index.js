@@ -375,6 +375,17 @@ function CheckRow({ check }) {
 
 // src/components/StatusToast.tsx
 var import_jsx_runtime2 = require("react/jsx-runtime");
+var TOAST_WIDTH = 300;
+var VIEWPORT_MARGIN = 12;
+function clampToViewport(desired, height) {
+  if (typeof window === "undefined") return desired;
+  const maxX = Math.max(VIEWPORT_MARGIN, window.innerWidth - TOAST_WIDTH - VIEWPORT_MARGIN);
+  const maxY = Math.max(VIEWPORT_MARGIN, window.innerHeight - height - VIEWPORT_MARGIN);
+  return {
+    x: Math.min(Math.max(desired.x, VIEWPORT_MARGIN), maxX),
+    y: Math.min(Math.max(desired.y, VIEWPORT_MARGIN), maxY)
+  };
+}
 function StatusToast({
   data,
   aggregate,
@@ -384,13 +395,20 @@ function StatusToast({
   onDragStop
 }) {
   const [dismissHovered, setDismissHovered] = (0, import_react4.useState)(false);
+  const nodeRef = (0, import_react4.useRef)(null);
+  const styleRef = (0, import_react4.useRef)(null);
   const headerDot = {
     ...headerDotStyle,
     backgroundColor: aggregate.color,
     animation: aggregate.animated ? "dsw-pulse 1.5s ease-in-out infinite" : "none"
   };
-  const nodeRef = (0, import_react4.useRef)(null);
-  const styleRef = (0, import_react4.useRef)(null);
+  const [pos, setPos] = (0, import_react4.useState)(() => {
+    const desired = position ?? {
+      x: typeof window !== "undefined" ? window.innerWidth - TOAST_WIDTH - VIEWPORT_MARGIN : 800,
+      y: VIEWPORT_MARGIN
+    };
+    return clampToViewport(desired, 0);
+  });
   (0, import_react4.useEffect)(() => {
     if (typeof document === "undefined") return;
     const existingStyle = document.getElementById("dsw-keyframes");
@@ -412,25 +430,32 @@ function StatusToast({
       nodeRef.current.style.setProperty("z-index", "999999", "important");
     }
   }, []);
+  (0, import_react4.useLayoutEffect)(() => {
+    const reclamp = () => {
+      const height = nodeRef.current?.offsetHeight ?? 0;
+      setPos((prev) => clampToViewport(prev, height));
+    };
+    reclamp();
+    window.addEventListener("resize", reclamp);
+    return () => window.removeEventListener("resize", reclamp);
+  }, []);
+  const handleDrag = (_e, dragData) => {
+    setPos({ x: dragData.x, y: dragData.y });
+  };
   const handleDragStop = (_e, dragData) => {
+    const clamped = clampToViewport({ x: dragData.x, y: dragData.y }, nodeRef.current?.offsetHeight ?? 0);
+    setPos(clamped);
     if (onDragStop) {
-      onDragStop(dragData.x, dragData.y);
+      onDragStop(clamped.x, clamped.y);
     }
   };
-  const defaultPosition = (0, import_react4.useMemo)(() => {
-    if (position) return position;
-    return {
-      x: typeof window !== "undefined" ? window.innerWidth - 320 : 800,
-      y: 20
-    };
-  }, []);
   const toast = /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
     import_react_draggable.default,
     {
       handle: ".deploy-widget-handle",
-      bounds: "body",
       nodeRef,
-      defaultPosition,
+      position: pos,
+      onDrag: handleDrag,
       onStop: handleDragStop,
       children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { ref: nodeRef, style: containerStyle, children: [
         /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: headerStyle, children: [
