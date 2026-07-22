@@ -140,6 +140,33 @@ export const headerDotStyle: CSSProperties = {
   animation: "dsw-pulse 1.5s ease-in-out infinite",
 };
 
+/** Collapsed status icon — small circular dark-glass button.
+    The border color + inner dot color are set per-state at runtime. */
+export const iconButtonStyle: CSSProperties = {
+  width: 40,
+  height: 40,
+  borderRadius: "50%",
+  backgroundColor: "#09202B", /* dark-mode-blue-300 */
+  border: "2px solid #17506D", /* dark-mode-blue-600 — overridden per-state */
+  backdropFilter: "blur(12px)",
+  boxShadow: "0 8px 24px rgba(0, 0, 0, 0.4)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: 0,
+  cursor: "grab",
+  userSelect: "none",
+};
+
+/** Inner traffic-light dot inside the collapsed icon.
+    backgroundColor + glow are set per-state at runtime. */
+export const iconDotStyle: CSSProperties = {
+  width: 14,
+  height: 14,
+  borderRadius: "50%",
+  flexShrink: 0,
+};
+
 /* ── Color constants ─────────────────────────────────────────────── */
 
 /** Building/active indicator — dark-mode-regeneration-600 */

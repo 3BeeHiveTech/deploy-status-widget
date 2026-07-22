@@ -1,5 +1,5 @@
 // src/components/DeployStatusWidget.tsx
-import { useState as useState5, useCallback as useCallback3 } from "react";
+import { useState as useState5, useCallback as useCallback3, useMemo as useMemo4 } from "react";
 
 // src/hooks/useDeployStatus.ts
 import { useState, useEffect, useCallback } from "react";
@@ -190,6 +190,29 @@ var headerDotStyle = {
   /* dark-mode-regeneration-600 */
   animation: "dsw-pulse 1.5s ease-in-out infinite"
 };
+var iconButtonStyle = {
+  width: 40,
+  height: 40,
+  borderRadius: "50%",
+  backgroundColor: "#09202B",
+  /* dark-mode-blue-300 */
+  border: "2px solid #17506D",
+  /* dark-mode-blue-600 — overridden per-state */
+  backdropFilter: "blur(12px)",
+  boxShadow: "0 8px 24px rgba(0, 0, 0, 0.4)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: 0,
+  cursor: "grab",
+  userSelect: "none"
+};
+var iconDotStyle = {
+  width: 14,
+  height: 14,
+  borderRadius: "50%",
+  flexShrink: 0
+};
 var COLOR_BUILDING = "#00F4B3";
 var COLOR_READY = "#00DF80";
 var COLOR_ERROR = "#F54135";
@@ -312,11 +335,18 @@ function CheckRow({ check }) {
 import { jsx as jsx2, jsxs as jsxs2 } from "react/jsx-runtime";
 function StatusToast({
   data,
-  onDismiss,
+  aggregate,
+  title,
+  onCollapse,
   position,
   onDragStop
 }) {
   const [dismissHovered, setDismissHovered] = useState4(false);
+  const headerDot = {
+    ...headerDotStyle,
+    backgroundColor: aggregate.color,
+    animation: aggregate.animated ? "dsw-pulse 1.5s ease-in-out infinite" : "none"
+  };
   const nodeRef = useRef(null);
   const styleRef = useRef(null);
   useEffect2(() => {
@@ -368,15 +398,15 @@ function StatusToast({
               className: "deploy-widget-handle",
               style: dragHandleStyle,
               children: /* @__PURE__ */ jsxs2("div", { style: headerTitleStyle, children: [
-                /* @__PURE__ */ jsx2("div", { style: headerDotStyle }),
-                /* @__PURE__ */ jsx2("span", { children: "Sta arrivando un aggiornamento!" })
+                /* @__PURE__ */ jsx2("div", { style: headerDot }),
+                /* @__PURE__ */ jsx2("span", { children: title })
               ] })
             }
           ),
           /* @__PURE__ */ jsx2(
             "button",
             {
-              onClick: onDismiss,
+              onClick: onCollapse,
               style: {
                 ...dismissButtonStyle,
                 backgroundColor: dismissHovered ? dismissButtonHoverBg : "transparent",
@@ -384,7 +414,7 @@ function StatusToast({
               },
               onMouseEnter: () => setDismissHovered(true),
               onMouseLeave: () => setDismissHovered(false),
-              "aria-label": "Dismiss deploy status",
+              "aria-label": "Comprimi stato deploy",
               type: "button",
               children: "\u2715"
             }
@@ -398,8 +428,134 @@ function StatusToast({
   return createPortal(toast, document.body);
 }
 
-// src/components/DeployStatusWidget.tsx
+// src/components/StatusIcon.tsx
+import { useRef as useRef2, useEffect as useEffect3, useMemo as useMemo3 } from "react";
+import { createPortal as createPortal2 } from "react-dom";
+import Draggable2 from "react-draggable";
 import { jsx as jsx3 } from "react/jsx-runtime";
+function StatusIcon({
+  aggregate,
+  label,
+  onExpand,
+  position,
+  onDragStop
+}) {
+  const nodeRef = useRef2(null);
+  const styleRef = useRef2(null);
+  const draggedRef = useRef2(false);
+  useEffect3(() => {
+    if (typeof document === "undefined") return;
+    const existingStyle = document.getElementById("dsw-keyframes");
+    if (existingStyle) return;
+    const style = document.createElement("style");
+    style.id = "dsw-keyframes";
+    style.textContent = keyframesCSS;
+    document.head.appendChild(style);
+    styleRef.current = style;
+    return () => {
+      if (styleRef.current && styleRef.current.parentNode) {
+        styleRef.current.parentNode.removeChild(styleRef.current);
+        styleRef.current = null;
+      }
+    };
+  }, []);
+  useEffect3(() => {
+    if (nodeRef.current) {
+      nodeRef.current.style.setProperty("z-index", "999999", "important");
+    }
+  }, []);
+  const defaultPosition = useMemo3(() => {
+    if (position) return position;
+    return {
+      x: typeof window !== "undefined" ? window.innerWidth - 64 : 800,
+      y: 20
+    };
+  }, []);
+  const handleDragStart = () => {
+    draggedRef.current = false;
+  };
+  const handleDrag = () => {
+    draggedRef.current = true;
+  };
+  const handleDragStop = (_e, dragData) => {
+    if (onDragStop) {
+      onDragStop(dragData.x, dragData.y);
+    }
+  };
+  const handleClick = () => {
+    if (draggedRef.current) return;
+    onExpand();
+  };
+  const buttonStyle = {
+    ...iconButtonStyle,
+    borderColor: aggregate.color,
+    boxShadow: `0 8px 24px rgba(0, 0, 0, 0.4), 0 0 12px ${aggregate.color}66`
+  };
+  const dotStyle = {
+    ...iconDotStyle,
+    backgroundColor: aggregate.color,
+    boxShadow: `0 0 8px ${aggregate.color}`,
+    ...aggregate.animated ? { animation: "dsw-pulse 1.5s ease-in-out infinite" } : {}
+  };
+  const icon = /* @__PURE__ */ jsx3(
+    Draggable2,
+    {
+      bounds: "body",
+      nodeRef,
+      defaultPosition,
+      onStart: handleDragStart,
+      onDrag: handleDrag,
+      onStop: handleDragStop,
+      children: /* @__PURE__ */ jsx3(
+        "div",
+        {
+          ref: nodeRef,
+          style: { position: "fixed", top: 0, left: 0, zIndex: 999999 },
+          children: /* @__PURE__ */ jsx3(
+            "button",
+            {
+              type: "button",
+              style: buttonStyle,
+              onClick: handleClick,
+              "aria-label": label,
+              title: label,
+              children: /* @__PURE__ */ jsx3("span", { style: dotStyle })
+            }
+          )
+        }
+      )
+    }
+  );
+  if (typeof document === "undefined") return icon;
+  return createPortal2(icon, document.body);
+}
+
+// src/components/statusKind.ts
+var ERROR_STATES = /* @__PURE__ */ new Set(["ERROR", "CANCELED"]);
+var ACTIVE_STATES = /* @__PURE__ */ new Set([
+  "BUILDING",
+  "INITIALIZING",
+  "in_progress",
+  "QUEUED",
+  "queued"
+]);
+function getAggregateStatus(checks) {
+  if (checks.some((check) => ERROR_STATES.has(check.status))) {
+    return { kind: "error", color: COLOR_ERROR, animated: false };
+  }
+  if (checks.some((check) => ACTIVE_STATES.has(check.status))) {
+    return { kind: "building", color: COLOR_QUEUED, animated: true };
+  }
+  return { kind: "operational", color: COLOR_READY, animated: false };
+}
+
+// src/components/DeployStatusWidget.tsx
+import { jsx as jsx4 } from "react/jsx-runtime";
+var STATUS_LABELS = {
+  operational: "Tutto operativo",
+  building: "Sta arrivando un aggiornamento!",
+  error: "Errore in un deploy"
+};
 function DeployStatusWidget({
   apiPath = "/api/deploy-status",
   pollInterval = 3e4,
@@ -407,19 +563,38 @@ function DeployStatusWidget({
 }) {
   const { data, error } = useDeployStatus(apiPath, pollInterval);
   const { position, onDragStop } = usePersistedPosition();
-  const [dismissed, setDismissed] = useState5(false);
-  const handleDismiss = useCallback3(() => {
-    setDismissed(true);
-  }, []);
-  if (!data || error || !data.deploying || dismissed) {
+  const [expanded, setExpanded] = useState5(false);
+  const aggregate = useMemo4(
+    () => data ? getAggregateStatus(data.checks) : null,
+    [data]
+  );
+  const handleExpand = useCallback3(() => setExpanded(true), []);
+  const handleCollapse = useCallback3(() => setExpanded(false), []);
+  if (!data || error || !aggregate) {
     return null;
   }
-  return /* @__PURE__ */ jsx3(
+  const pos = defaultPosition ?? position;
+  const label = STATUS_LABELS[aggregate.kind];
+  if (!expanded) {
+    return /* @__PURE__ */ jsx4(
+      StatusIcon,
+      {
+        aggregate,
+        label,
+        onExpand: handleExpand,
+        position: pos,
+        onDragStop
+      }
+    );
+  }
+  return /* @__PURE__ */ jsx4(
     StatusToast,
     {
       data,
-      onDismiss: handleDismiss,
-      position: defaultPosition ?? position,
+      aggregate,
+      title: label,
+      onCollapse: handleCollapse,
+      position: pos,
       onDragStop
     }
   );

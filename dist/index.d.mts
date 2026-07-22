@@ -12,13 +12,14 @@ interface DeployStatusWidgetProps {
     };
 }
 /**
- * Top-level deploy status widget component.
+ * Top-level deploy status widget.
  *
- * Renders a floating, draggable, dismissable toast when deployments
- * are in progress. Renders nothing when idle or on error.
+ * Collapsed by default into a small draggable traffic-light icon
+ * (green = operational, amber = building, red = error). Clicking the icon
+ * expands the full StatusToast panel; the panel's ✕ collapses back to the icon.
+ * Renders nothing only when there is no data yet or the request errored.
  *
- * Dismiss is session-only (React state). Refreshing the page
- * resets the dismiss — the widget always shows if something is building.
+ * Collapse/expand is session state (React) — a refresh reopens collapsed.
  */
 declare function DeployStatusWidget({ apiPath, pollInterval, defaultPosition, }: DeployStatusWidgetProps): react_jsx_runtime.JSX.Element | null;
 

@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { useDeployStatus } from "../hooks/useDeployStatus";
 import { usePersistedPosition } from "../hooks/usePersistedPosition";
 import { StatusToast } from "./StatusToast";
+import { StatusIcon } from "./StatusIcon";
+import { getAggregateStatus, type AggregateKind } from "./statusKind";
 
 export interface DeployStatusWidgetProps {
   /** API endpoint path (default "/api/deploy-status") */
@@ -14,14 +16,22 @@ export interface DeployStatusWidgetProps {
   defaultPosition?: { x: number; y: number };
 }
 
+/** Header title per aggregate state (Italian, matching the host app). */
+const STATUS_LABELS: Record<AggregateKind, string> = {
+  operational: "Tutto operativo",
+  building: "Sta arrivando un aggiornamento!",
+  error: "Errore in un deploy",
+};
+
 /**
- * Top-level deploy status widget component.
+ * Top-level deploy status widget.
  *
- * Renders a floating, draggable, dismissable toast when deployments
- * are in progress. Renders nothing when idle or on error.
+ * Collapsed by default into a small draggable traffic-light icon
+ * (green = operational, amber = building, red = error). Clicking the icon
+ * expands the full StatusToast panel; the panel's ✕ collapses back to the icon.
+ * Renders nothing only when there is no data yet or the request errored.
  *
- * Dismiss is session-only (React state). Refreshing the page
- * resets the dismiss — the widget always shows if something is building.
+ * Collapse/expand is session state (React) — a refresh reopens collapsed.
  */
 export function DeployStatusWidget({
   apiPath = "/api/deploy-status",
@@ -30,22 +40,43 @@ export function DeployStatusWidget({
 }: DeployStatusWidgetProps) {
   const { data, error } = useDeployStatus(apiPath, pollInterval);
   const { position, onDragStop } = usePersistedPosition();
-  const [dismissed, setDismissed] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
-  const handleDismiss = useCallback(() => {
-    setDismissed(true);
-  }, []);
+  const aggregate = useMemo(
+    () => (data ? getAggregateStatus(data.checks) : null),
+    [data],
+  );
 
-  /* Render nothing when: no data, error, not deploying, or dismissed */
-  if (!data || error || !data.deploying || dismissed) {
+  const handleExpand = useCallback(() => setExpanded(true), []);
+  const handleCollapse = useCallback(() => setExpanded(false), []);
+
+  /* Render nothing when there is no data yet or the request errored. */
+  if (!data || error || !aggregate) {
     return null;
+  }
+
+  const pos = defaultPosition ?? position;
+  const label = STATUS_LABELS[aggregate.kind];
+
+  if (!expanded) {
+    return (
+      <StatusIcon
+        aggregate={aggregate}
+        label={label}
+        onExpand={handleExpand}
+        position={pos}
+        onDragStop={onDragStop}
+      />
+    );
   }
 
   return (
     <StatusToast
       data={data}
-      onDismiss={handleDismiss}
-      position={defaultPosition ?? position}
+      aggregate={aggregate}
+      title={label}
+      onCollapse={handleCollapse}
+      position={pos}
       onDragStop={onDragStop}
     />
   );
