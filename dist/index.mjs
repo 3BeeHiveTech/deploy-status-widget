@@ -190,21 +190,27 @@ var headerDotStyle = {
   /* dark-mode-regeneration-600 */
   animation: "dsw-pulse 1.5s ease-in-out infinite"
 };
-var iconButtonStyle = {
-  width: 40,
-  height: 40,
-  borderRadius: "50%",
+var iconPillStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 8,
+  height: 34,
+  padding: "0 14px",
+  borderRadius: 999,
   backgroundColor: "#09202B",
   /* dark-mode-blue-300 */
   border: "2px solid #17506D",
   /* dark-mode-blue-600 — overridden per-state */
   backdropFilter: "blur(12px)",
   boxShadow: "0 8px 24px rgba(0, 0, 0, 0.4)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: 0,
   cursor: "grab",
+  color: "#FFFFFF",
+  /* white */
+  fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+  fontSize: 13,
+  fontWeight: 600,
+  lineHeight: 1,
+  whiteSpace: "nowrap",
   userSelect: "none"
 };
 var iconDotStyle = {
@@ -432,7 +438,7 @@ function StatusToast({
 import { useRef as useRef2, useEffect as useEffect3, useMemo as useMemo3 } from "react";
 import { createPortal as createPortal2 } from "react-dom";
 import Draggable2 from "react-draggable";
-import { jsx as jsx3 } from "react/jsx-runtime";
+import { jsx as jsx3, jsxs as jsxs3 } from "react/jsx-runtime";
 function StatusIcon({
   aggregate,
   label,
@@ -467,7 +473,7 @@ function StatusIcon({
   const defaultPosition = useMemo3(() => {
     if (position) return position;
     return {
-      x: typeof window !== "undefined" ? window.innerWidth - 64 : 800,
+      x: typeof window !== "undefined" ? window.innerWidth - 190 : 800,
       y: 20
     };
   }, []);
@@ -487,7 +493,7 @@ function StatusIcon({
     onExpand();
   };
   const buttonStyle = {
-    ...iconButtonStyle,
+    ...iconPillStyle,
     borderColor: aggregate.color,
     boxShadow: `0 8px 24px rgba(0, 0, 0, 0.4), 0 0 12px ${aggregate.color}66`
   };
@@ -511,7 +517,7 @@ function StatusIcon({
         {
           ref: nodeRef,
           style: { position: "fixed", top: 0, left: 0, zIndex: 999999 },
-          children: /* @__PURE__ */ jsx3(
+          children: /* @__PURE__ */ jsxs3(
             "button",
             {
               type: "button",
@@ -519,7 +525,10 @@ function StatusIcon({
               onClick: handleClick,
               "aria-label": label,
               title: label,
-              children: /* @__PURE__ */ jsx3("span", { style: dotStyle })
+              children: [
+                /* @__PURE__ */ jsx3("span", { style: dotStyle }),
+                /* @__PURE__ */ jsx3("span", { children: "Aggiornamenti" })
+              ]
             }
           )
         }

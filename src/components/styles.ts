@@ -140,21 +140,27 @@ export const headerDotStyle: CSSProperties = {
   animation: "dsw-pulse 1.5s ease-in-out infinite",
 };
 
-/** Collapsed status icon — small circular dark-glass button.
-    The border color + inner dot color are set per-state at runtime. */
-export const iconButtonStyle: CSSProperties = {
-  width: 40,
-  height: 40,
-  borderRadius: "50%",
+/** Collapsed status badge — a dark-glass pill with a status dot + "Aggiornamenti".
+    The border color is set per-state at runtime (green / amber / red). */
+export const iconPillStyle: CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 8,
+  height: 34,
+  padding: "0 14px",
+  borderRadius: 999,
   backgroundColor: "#09202B", /* dark-mode-blue-300 */
   border: "2px solid #17506D", /* dark-mode-blue-600 — overridden per-state */
   backdropFilter: "blur(12px)",
   boxShadow: "0 8px 24px rgba(0, 0, 0, 0.4)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: 0,
   cursor: "grab",
+  color: "#FFFFFF", /* white */
+  fontFamily:
+    "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+  fontSize: 13,
+  fontWeight: 600,
+  lineHeight: 1,
+  whiteSpace: "nowrap",
   userSelect: "none",
 };
 

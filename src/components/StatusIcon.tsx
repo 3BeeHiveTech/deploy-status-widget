@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import Draggable from "react-draggable";
 import type { DraggableEvent, DraggableData } from "react-draggable";
 import type { AggregateStatus } from "./statusKind";
-import { iconButtonStyle, iconDotStyle, keyframesCSS } from "./styles";
+import { iconPillStyle, iconDotStyle, keyframesCSS } from "./styles";
 
 interface StatusIconProps {
   /** Aggregated traffic-light state (color + pulse). */
@@ -21,9 +21,10 @@ interface StatusIconProps {
 }
 
 /**
- * Collapsed state of the deploy widget: a small draggable circular icon whose
- * color reflects the aggregate build state (green operational / amber building /
- * red error). Clicking it (without dragging) expands into the full StatusToast.
+ * Collapsed state of the deploy widget: a small draggable "Aggiornamenti" pill
+ * badge whose border color reflects the aggregate build state (green operational
+ * / amber building / red error). Clicking it (without dragging) expands into the
+ * full StatusToast.
  *
  * Shares the drag-position localStorage anchor with StatusToast so the widget
  * stays put across collapse/expand. Portals to <body> to escape stacking
@@ -74,7 +75,7 @@ export function StatusIcon({
   const defaultPosition = useMemo(() => {
     if (position) return position;
     return {
-      x: typeof window !== "undefined" ? window.innerWidth - 64 : 800,
+      x: typeof window !== "undefined" ? window.innerWidth - 190 : 800,
       y: 20,
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -100,7 +101,7 @@ export function StatusIcon({
   };
 
   const buttonStyle: React.CSSProperties = {
-    ...iconButtonStyle,
+    ...iconPillStyle,
     borderColor: aggregate.color,
     boxShadow: `0 8px 24px rgba(0, 0, 0, 0.4), 0 0 12px ${aggregate.color}66`,
   };
@@ -135,6 +136,7 @@ export function StatusIcon({
           title={label}
         >
           <span style={dotStyle} />
+          <span>Aggiornamenti</span>
         </button>
       </div>
     </Draggable>
