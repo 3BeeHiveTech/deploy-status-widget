@@ -20,6 +20,13 @@ interface DeployStatusWidgetProps {
  * Renders nothing only when there is no data yet or the request errored.
  *
  * Collapse/expand is session state (React) — a refresh reopens collapsed.
+ *
+ * The widget is ANCHORED top-right in both states and no longer persists a drag
+ * position. Persisting it (shared between the small pill and the wide panel)
+ * stranded the collapsed pill "in the middle" whenever a stale/mismatched
+ * coordinate was reused, so we drop persistence entirely: both states default to
+ * their (viewport-clamped) top-right anchor on every open/close. Dragging still
+ * works within a single open panel; collapsing re-pins top-right.
  */
 declare function DeployStatusWidget({ apiPath, pollInterval, defaultPosition, }: DeployStatusWidgetProps): react_jsx_runtime.JSX.Element | null;
 

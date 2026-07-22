@@ -2,7 +2,6 @@
 
 import React, { useState, useCallback, useMemo } from "react";
 import { useDeployStatus } from "../hooks/useDeployStatus";
-import { usePersistedPosition } from "../hooks/usePersistedPosition";
 import { StatusToast } from "./StatusToast";
 import { StatusIcon } from "./StatusIcon";
 import { getAggregateStatus, type AggregateKind } from "./statusKind";
@@ -32,6 +31,13 @@ const STATUS_LABELS: Record<AggregateKind, string> = {
  * Renders nothing only when there is no data yet or the request errored.
  *
  * Collapse/expand is session state (React) — a refresh reopens collapsed.
+ *
+ * The widget is ANCHORED top-right in both states and no longer persists a drag
+ * position. Persisting it (shared between the small pill and the wide panel)
+ * stranded the collapsed pill "in the middle" whenever a stale/mismatched
+ * coordinate was reused, so we drop persistence entirely: both states default to
+ * their (viewport-clamped) top-right anchor on every open/close. Dragging still
+ * works within a single open panel; collapsing re-pins top-right.
  */
 export function DeployStatusWidget({
   apiPath = "/api/deploy-status",
@@ -39,7 +45,6 @@ export function DeployStatusWidget({
   defaultPosition,
 }: DeployStatusWidgetProps) {
   const { data, error } = useDeployStatus(apiPath, pollInterval);
-  const { position, onDragStop } = usePersistedPosition();
   const [expanded, setExpanded] = useState(false);
 
   const aggregate = useMemo(
@@ -55,7 +60,6 @@ export function DeployStatusWidget({
     return null;
   }
 
-  const pos = defaultPosition ?? position;
   const label = STATUS_LABELS[aggregate.kind];
 
   if (!expanded) {
@@ -64,8 +68,7 @@ export function DeployStatusWidget({
         aggregate={aggregate}
         label={label}
         onExpand={handleExpand}
-        position={pos}
-        onDragStop={onDragStop}
+        position={defaultPosition}
       />
     );
   }
@@ -76,8 +79,7 @@ export function DeployStatusWidget({
       aggregate={aggregate}
       title={label}
       onCollapse={handleCollapse}
-      position={pos}
-      onDragStop={onDragStop}
+      position={defaultPosition}
     />
   );
 }

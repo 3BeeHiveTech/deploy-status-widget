@@ -35,7 +35,7 @@ __export(src_exports, {
 module.exports = __toCommonJS(src_exports);
 
 // src/components/DeployStatusWidget.tsx
-var import_react6 = require("react");
+var import_react5 = require("react");
 
 // src/hooks/useDeployStatus.ts
 var import_react = require("react");
@@ -77,50 +77,13 @@ function useDeployStatus(apiPath = "/api/deploy-status", pollInterval = 3e4) {
   return { data, error };
 }
 
-// src/hooks/usePersistedPosition.ts
-var import_react2 = require("react");
-var DEFAULT_STORAGE_KEY = "deploy-widget-position";
-function readPosition(key) {
-  if (typeof window === "undefined") return void 0;
-  try {
-    const stored = localStorage.getItem(key);
-    if (!stored) return void 0;
-    const parsed = JSON.parse(stored);
-    if (typeof parsed.x === "number" && typeof parsed.y === "number") {
-      return parsed;
-    }
-    return void 0;
-  } catch {
-    return void 0;
-  }
-}
-function usePersistedPosition(storageKey = DEFAULT_STORAGE_KEY) {
-  const [position, setPosition] = (0, import_react2.useState)(
-    () => readPosition(storageKey)
-  );
-  const onDragStop = (0, import_react2.useCallback)(
-    (x, y) => {
-      const newPosition = { x, y };
-      setPosition(newPosition);
-      if (typeof window !== "undefined") {
-        try {
-          localStorage.setItem(storageKey, JSON.stringify(newPosition));
-        } catch {
-        }
-      }
-    },
-    [storageKey]
-  );
-  return { position, onDragStop };
-}
-
 // src/components/StatusToast.tsx
-var import_react4 = require("react");
+var import_react3 = require("react");
 var import_react_dom = require("react-dom");
 var import_react_draggable = __toESM(require("react-draggable"));
 
 // src/components/CheckRow.tsx
-var import_react3 = require("react");
+var import_react2 = require("react");
 
 // src/components/styles.ts
 var containerStyle = {
@@ -323,8 +286,8 @@ function getStatusDisplay(status) {
   };
 }
 function CheckRow({ check }) {
-  const [hovered, setHovered] = (0, import_react3.useState)(false);
-  const { color, text, isAnimated } = (0, import_react3.useMemo)(
+  const [hovered, setHovered] = (0, import_react2.useState)(false);
+  const { color, text, isAnimated } = (0, import_react2.useMemo)(
     () => getStatusDisplay(check.status),
     [check.status]
   );
@@ -394,22 +357,22 @@ function StatusToast({
   position,
   onDragStop
 }) {
-  const [dismissHovered, setDismissHovered] = (0, import_react4.useState)(false);
-  const nodeRef = (0, import_react4.useRef)(null);
-  const styleRef = (0, import_react4.useRef)(null);
+  const [dismissHovered, setDismissHovered] = (0, import_react3.useState)(false);
+  const nodeRef = (0, import_react3.useRef)(null);
+  const styleRef = (0, import_react3.useRef)(null);
   const headerDot = {
     ...headerDotStyle,
     backgroundColor: aggregate.color,
     animation: aggregate.animated ? "dsw-pulse 1.5s ease-in-out infinite" : "none"
   };
-  const [pos, setPos] = (0, import_react4.useState)(() => {
+  const [pos, setPos] = (0, import_react3.useState)(() => {
     const desired = position ?? {
       x: typeof window !== "undefined" ? window.innerWidth - TOAST_WIDTH - VIEWPORT_MARGIN : 800,
       y: VIEWPORT_MARGIN
     };
     return clampToViewport(desired, 0);
   });
-  (0, import_react4.useEffect)(() => {
+  (0, import_react3.useEffect)(() => {
     if (typeof document === "undefined") return;
     const existingStyle = document.getElementById("dsw-keyframes");
     if (existingStyle) return;
@@ -425,12 +388,12 @@ function StatusToast({
       }
     };
   }, []);
-  (0, import_react4.useEffect)(() => {
+  (0, import_react3.useEffect)(() => {
     if (nodeRef.current) {
       nodeRef.current.style.setProperty("z-index", "999999", "important");
     }
   }, []);
-  (0, import_react4.useLayoutEffect)(() => {
+  (0, import_react3.useLayoutEffect)(() => {
     const reclamp = () => {
       const height = nodeRef.current?.offsetHeight ?? 0;
       setPos((prev) => clampToViewport(prev, height));
@@ -496,7 +459,7 @@ function StatusToast({
 }
 
 // src/components/StatusIcon.tsx
-var import_react5 = require("react");
+var import_react4 = require("react");
 var import_react_dom2 = require("react-dom");
 var import_react_draggable2 = __toESM(require("react-draggable"));
 var import_jsx_runtime3 = require("react/jsx-runtime");
@@ -507,10 +470,10 @@ function StatusIcon({
   position,
   onDragStop
 }) {
-  const nodeRef = (0, import_react5.useRef)(null);
-  const styleRef = (0, import_react5.useRef)(null);
-  const draggedRef = (0, import_react5.useRef)(false);
-  (0, import_react5.useEffect)(() => {
+  const nodeRef = (0, import_react4.useRef)(null);
+  const styleRef = (0, import_react4.useRef)(null);
+  const draggedRef = (0, import_react4.useRef)(false);
+  (0, import_react4.useEffect)(() => {
     if (typeof document === "undefined") return;
     const existingStyle = document.getElementById("dsw-keyframes");
     if (existingStyle) return;
@@ -526,12 +489,12 @@ function StatusIcon({
       }
     };
   }, []);
-  (0, import_react5.useEffect)(() => {
+  (0, import_react4.useEffect)(() => {
     if (nodeRef.current) {
       nodeRef.current.style.setProperty("z-index", "999999", "important");
     }
   }, []);
-  const defaultPosition = (0, import_react5.useMemo)(() => {
+  const defaultPosition = (0, import_react4.useMemo)(() => {
     if (position) return position;
     return {
       x: typeof window !== "undefined" ? window.innerWidth - 190 : 800,
@@ -632,18 +595,16 @@ function DeployStatusWidget({
   defaultPosition
 }) {
   const { data, error } = useDeployStatus(apiPath, pollInterval);
-  const { position, onDragStop } = usePersistedPosition();
-  const [expanded, setExpanded] = (0, import_react6.useState)(false);
-  const aggregate = (0, import_react6.useMemo)(
+  const [expanded, setExpanded] = (0, import_react5.useState)(false);
+  const aggregate = (0, import_react5.useMemo)(
     () => data ? getAggregateStatus(data.checks) : null,
     [data]
   );
-  const handleExpand = (0, import_react6.useCallback)(() => setExpanded(true), []);
-  const handleCollapse = (0, import_react6.useCallback)(() => setExpanded(false), []);
+  const handleExpand = (0, import_react5.useCallback)(() => setExpanded(true), []);
+  const handleCollapse = (0, import_react5.useCallback)(() => setExpanded(false), []);
   if (!data || error || !aggregate) {
     return null;
   }
-  const pos = defaultPosition ?? position;
   const label = STATUS_LABELS[aggregate.kind];
   if (!expanded) {
     return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
@@ -652,8 +613,7 @@ function DeployStatusWidget({
         aggregate,
         label,
         onExpand: handleExpand,
-        position: pos,
-        onDragStop
+        position: defaultPosition
       }
     );
   }
@@ -664,8 +624,7 @@ function DeployStatusWidget({
       aggregate,
       title: label,
       onCollapse: handleCollapse,
-      position: pos,
-      onDragStop
+      position: defaultPosition
     }
   );
 }

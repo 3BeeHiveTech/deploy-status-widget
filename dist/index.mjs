@@ -1,5 +1,5 @@
 // src/components/DeployStatusWidget.tsx
-import { useState as useState5, useCallback as useCallback3, useMemo as useMemo3 } from "react";
+import { useState as useState4, useCallback as useCallback2, useMemo as useMemo3 } from "react";
 
 // src/hooks/useDeployStatus.ts
 import { useState, useEffect, useCallback } from "react";
@@ -41,50 +41,13 @@ function useDeployStatus(apiPath = "/api/deploy-status", pollInterval = 3e4) {
   return { data, error };
 }
 
-// src/hooks/usePersistedPosition.ts
-import { useState as useState2, useCallback as useCallback2 } from "react";
-var DEFAULT_STORAGE_KEY = "deploy-widget-position";
-function readPosition(key) {
-  if (typeof window === "undefined") return void 0;
-  try {
-    const stored = localStorage.getItem(key);
-    if (!stored) return void 0;
-    const parsed = JSON.parse(stored);
-    if (typeof parsed.x === "number" && typeof parsed.y === "number") {
-      return parsed;
-    }
-    return void 0;
-  } catch {
-    return void 0;
-  }
-}
-function usePersistedPosition(storageKey = DEFAULT_STORAGE_KEY) {
-  const [position, setPosition] = useState2(
-    () => readPosition(storageKey)
-  );
-  const onDragStop = useCallback2(
-    (x, y) => {
-      const newPosition = { x, y };
-      setPosition(newPosition);
-      if (typeof window !== "undefined") {
-        try {
-          localStorage.setItem(storageKey, JSON.stringify(newPosition));
-        } catch {
-        }
-      }
-    },
-    [storageKey]
-  );
-  return { position, onDragStop };
-}
-
 // src/components/StatusToast.tsx
-import { useState as useState4, useRef, useEffect as useEffect2, useLayoutEffect } from "react";
+import { useState as useState3, useRef, useEffect as useEffect2, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import Draggable from "react-draggable";
 
 // src/components/CheckRow.tsx
-import { useState as useState3, useMemo } from "react";
+import { useState as useState2, useMemo } from "react";
 
 // src/components/styles.ts
 var containerStyle = {
@@ -287,7 +250,7 @@ function getStatusDisplay(status) {
   };
 }
 function CheckRow({ check }) {
-  const [hovered, setHovered] = useState3(false);
+  const [hovered, setHovered] = useState2(false);
   const { color, text, isAnimated } = useMemo(
     () => getStatusDisplay(check.status),
     [check.status]
@@ -358,7 +321,7 @@ function StatusToast({
   position,
   onDragStop
 }) {
-  const [dismissHovered, setDismissHovered] = useState4(false);
+  const [dismissHovered, setDismissHovered] = useState3(false);
   const nodeRef = useRef(null);
   const styleRef = useRef(null);
   const headerDot = {
@@ -366,7 +329,7 @@ function StatusToast({
     backgroundColor: aggregate.color,
     animation: aggregate.animated ? "dsw-pulse 1.5s ease-in-out infinite" : "none"
   };
-  const [pos, setPos] = useState4(() => {
+  const [pos, setPos] = useState3(() => {
     const desired = position ?? {
       x: typeof window !== "undefined" ? window.innerWidth - TOAST_WIDTH - VIEWPORT_MARGIN : 800,
       y: VIEWPORT_MARGIN
@@ -596,18 +559,16 @@ function DeployStatusWidget({
   defaultPosition
 }) {
   const { data, error } = useDeployStatus(apiPath, pollInterval);
-  const { position, onDragStop } = usePersistedPosition();
-  const [expanded, setExpanded] = useState5(false);
+  const [expanded, setExpanded] = useState4(false);
   const aggregate = useMemo3(
     () => data ? getAggregateStatus(data.checks) : null,
     [data]
   );
-  const handleExpand = useCallback3(() => setExpanded(true), []);
-  const handleCollapse = useCallback3(() => setExpanded(false), []);
+  const handleExpand = useCallback2(() => setExpanded(true), []);
+  const handleCollapse = useCallback2(() => setExpanded(false), []);
   if (!data || error || !aggregate) {
     return null;
   }
-  const pos = defaultPosition ?? position;
   const label = STATUS_LABELS[aggregate.kind];
   if (!expanded) {
     return /* @__PURE__ */ jsx4(
@@ -616,8 +577,7 @@ function DeployStatusWidget({
         aggregate,
         label,
         onExpand: handleExpand,
-        position: pos,
-        onDragStop
+        position: defaultPosition
       }
     );
   }
@@ -628,8 +588,7 @@ function DeployStatusWidget({
       aggregate,
       title: label,
       onCollapse: handleCollapse,
-      position: pos,
-      onDragStop
+      position: defaultPosition
     }
   );
 }
