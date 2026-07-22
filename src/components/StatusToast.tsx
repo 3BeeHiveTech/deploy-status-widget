@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import Draggable from "react-draggable";
 import type { DraggableEvent, DraggableData } from "react-draggable";
 import type { StatusResponse } from "../types";
+import type { AggregateStatus } from "./statusKind";
 import { CheckRow } from "./CheckRow";
 import {
   containerStyle,
@@ -20,7 +21,12 @@ import {
 
 interface StatusToastProps {
   data: StatusResponse;
-  onDismiss: () => void;
+  /** Aggregated traffic-light state — colors the header dot. */
+  aggregate: AggregateStatus;
+  /** Header title, resolved per aggregate state by the parent. */
+  title: string;
+  /** Collapse back to the icon (the ✕ button). */
+  onCollapse: () => void;
   /** Persisted position from localStorage */
   position?: { x: number; y: number };
   /** Callback when drag stops, to persist position */
@@ -32,8 +38,8 @@ interface StatusToastProps {
  *
  * Renders a dark-themed panel with:
  * - Drag handle in the header (class: deploy-widget-handle)
- * - "Deploying" title with animated green dot
- * - Dismiss (x) button
+ * - Aggregate-state title with a traffic-light dot (pulses while in flight)
+ * - Collapse (✕) button — folds the panel back into the icon
  * - List of CheckRow components
  *
  * Uses react-draggable for drag support with bounds="body".
@@ -41,11 +47,23 @@ interface StatusToastProps {
  */
 export function StatusToast({
   data,
-  onDismiss,
+  aggregate,
+  title,
+  onCollapse,
   position,
   onDragStop,
 }: StatusToastProps) {
   const [dismissHovered, setDismissHovered] = useState(false);
+
+  /* Header dot mirrors the collapsed icon's traffic-light color and only
+     pulses while something is in flight. */
+  const headerDot: React.CSSProperties = {
+    ...headerDotStyle,
+    backgroundColor: aggregate.color,
+    animation: aggregate.animated
+      ? "dsw-pulse 1.5s ease-in-out infinite"
+      : "none",
+  };
   const nodeRef = useRef<HTMLDivElement>(null);
   const styleRef = useRef<HTMLStyleElement | null>(null);
 
@@ -111,14 +129,14 @@ export function StatusToast({
             style={dragHandleStyle}
           >
             <div style={headerTitleStyle}>
-              <div style={headerDotStyle} />
-              <span>Sta arrivando un aggiornamento!</span>
+              <div style={headerDot} />
+              <span>{title}</span>
             </div>
           </div>
 
-          {/* Dismiss button */}
+          {/* Collapse button — folds the panel back into the icon */}
           <button
-            onClick={onDismiss}
+            onClick={onCollapse}
             style={{
               ...dismissButtonStyle,
               backgroundColor: dismissHovered
@@ -128,7 +146,7 @@ export function StatusToast({
             }}
             onMouseEnter={() => setDismissHovered(true)}
             onMouseLeave={() => setDismissHovered(false)}
-            aria-label="Dismiss deploy status"
+            aria-label="Comprimi stato deploy"
             type="button"
           >
             &#x2715;
