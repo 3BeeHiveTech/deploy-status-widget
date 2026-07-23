@@ -10,6 +10,21 @@ interface GitHubRunsResponse {
 }
 
 /**
+ * A run stuck in queued/in_progress for longer than this is a GitHub-side
+ * zombie (e.g. a corrupted re-run that never starts — observed on lambda-oasi:
+ * a "queued" run 58 DAYS old that not even force-cancel could clear). Real
+ * deploys finish in minutes; anything in flight for hours is not "an update
+ * is coming" and must not pin the widget amber forever.
+ */
+const STALE_ACTIVE_RUN_MS = 3 * 60 * 60 * 1000; // 3 hours
+
+function isFreshRun(createdAt: string | undefined): boolean {
+  if (!createdAt) return true; // no timestamp — assume fresh, never hide real activity
+  const age = Date.now() - new Date(createdAt).getTime();
+  return Number.isFinite(age) ? age < STALE_ACTIVE_RUN_MS : true;
+}
+
+/**
  * Check GitHub Actions for in-progress or queued workflow runs.
  *
  * Makes two API calls:
@@ -17,6 +32,7 @@ interface GitHubRunsResponse {
  * - ?status=queued to find queued builds
  *
  * Returns "idle" when no active runs, "in_progress" or "queued" otherwise.
+ * Zombie runs (in flight longer than STALE_ACTIVE_RUN_MS) are treated as idle.
  */
 export async function checkGitHub(
   check: GitHubCheck,
@@ -50,24 +66,28 @@ export async function checkGitHub(
 
     if (inProgressData.total_count > 0) {
       const run = inProgressData.workflow_runs[0];
-      return {
-        label: check.label,
-        type: "github",
-        status: "in_progress",
-        url: check.url,
-        startedAt: run?.created_at,
-      };
+      if (isFreshRun(run?.created_at)) {
+        return {
+          label: check.label,
+          type: "github",
+          status: "in_progress",
+          url: check.url,
+          startedAt: run?.created_at,
+        };
+      }
     }
 
     if (queuedData.total_count > 0) {
       const run = queuedData.workflow_runs[0];
-      return {
-        label: check.label,
-        type: "github",
-        status: "queued",
-        url: check.url,
-        startedAt: run?.created_at,
-      };
+      if (isFreshRun(run?.created_at)) {
+        return {
+          label: check.label,
+          type: "github",
+          status: "queued",
+          url: check.url,
+          startedAt: run?.created_at,
+        };
+      }
     }
 
     return {

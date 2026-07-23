@@ -67,12 +67,22 @@ export async function checkVercel(
     }
 
     const latest = deployments[0];
-    const isDeploying = DEPLOYING_STATES.has(latest.state);
+    // Same zombie guard as GitHub: a deployment "in flight" for hours is a
+    // stuck artifact, not an incoming update (see STALE_ACTIVE_RUN_MS rationale
+    // in github.ts). 3 hours is far beyond any real Vercel build.
+    const ageMs = Date.now() - latest.createdAt;
+    const isStale = Number.isFinite(ageMs) && ageMs > 3 * 60 * 60 * 1000;
+    const isDeploying = DEPLOYING_STATES.has(latest.state) && !isStale;
+
+    // The widget aggregates on the raw `status` string (statusKind
+    // ACTIVE_STATES), so a stale in-flight state must not leak through or it
+    // pins the traffic light amber forever — surface it as READY instead.
+    const status = isStale && DEPLOYING_STATES.has(latest.state) ? "READY" : latest.state;
 
     return {
       label: check.label,
       type: "vercel",
-      status: latest.state,
+      status,
       url: check.url,
       startedAt: isDeploying
         ? new Date(latest.createdAt).toISOString()

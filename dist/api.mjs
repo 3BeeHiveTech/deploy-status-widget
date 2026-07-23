@@ -37,11 +37,14 @@ async function checkVercel(check, token, teamId) {
       };
     }
     const latest = deployments[0];
-    const isDeploying = DEPLOYING_STATES.has(latest.state);
+    const ageMs = Date.now() - latest.createdAt;
+    const isStale = Number.isFinite(ageMs) && ageMs > 3 * 60 * 60 * 1e3;
+    const isDeploying = DEPLOYING_STATES.has(latest.state) && !isStale;
+    const status = isStale && DEPLOYING_STATES.has(latest.state) ? "READY" : latest.state;
     return {
       label: check.label,
       type: "vercel",
-      status: latest.state,
+      status,
       url: check.url,
       startedAt: isDeploying ? new Date(latest.createdAt).toISOString() : void 0
     };
@@ -56,6 +59,12 @@ async function checkVercel(check, token, teamId) {
 }
 
 // src/api/github.ts
+var STALE_ACTIVE_RUN_MS = 3 * 60 * 60 * 1e3;
+function isFreshRun(createdAt) {
+  if (!createdAt) return true;
+  const age = Date.now() - new Date(createdAt).getTime();
+  return Number.isFinite(age) ? age < STALE_ACTIVE_RUN_MS : true;
+}
 async function checkGitHub(check, token) {
   try {
     const baseUrl = `https://api.github.com/repos/${check.owner}/${check.repo}/actions/runs`;
@@ -80,23 +89,27 @@ async function checkGitHub(check, token) {
     const queuedData = await queuedResponse.json();
     if (inProgressData.total_count > 0) {
       const run = inProgressData.workflow_runs[0];
-      return {
-        label: check.label,
-        type: "github",
-        status: "in_progress",
-        url: check.url,
-        startedAt: run?.created_at
-      };
+      if (isFreshRun(run?.created_at)) {
+        return {
+          label: check.label,
+          type: "github",
+          status: "in_progress",
+          url: check.url,
+          startedAt: run?.created_at
+        };
+      }
     }
     if (queuedData.total_count > 0) {
       const run = queuedData.workflow_runs[0];
-      return {
-        label: check.label,
-        type: "github",
-        status: "queued",
-        url: check.url,
-        startedAt: run?.created_at
-      };
+      if (isFreshRun(run?.created_at)) {
+        return {
+          label: check.label,
+          type: "github",
+          status: "queued",
+          url: check.url,
+          startedAt: run?.created_at
+        };
+      }
     }
     return {
       label: check.label,
