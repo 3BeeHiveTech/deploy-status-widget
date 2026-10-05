@@ -1,4 +1,5 @@
 import type { VercelCheck, CheckResult } from "../types";
+import { upstreamSignal } from "./timeout";
 
 /** Vercel deployment states that indicate an active build */
 const DEPLOYING_STATES = new Set(["BUILDING", "QUEUED", "INITIALIZING"]);
@@ -42,6 +43,8 @@ export async function checkVercel(
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        // Abort a hung upstream: the catch below turns it into status ERROR.
+        signal: upstreamSignal(),
       },
     );
 

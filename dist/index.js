@@ -42,7 +42,10 @@ var import_react = require("react");
 function useDeployStatus(apiPath = "/api/deploy-status", pollInterval = 3e4) {
   const [data, setData] = (0, import_react.useState)(null);
   const [error, setError] = (0, import_react.useState)(false);
+  const inFlight = (0, import_react.useRef)(false);
   const fetchStatus = (0, import_react.useCallback)(async () => {
+    if (inFlight.current) return;
+    inFlight.current = true;
     try {
       const response = await fetch(apiPath);
       if (!response.ok) {
@@ -54,6 +57,8 @@ function useDeployStatus(apiPath = "/api/deploy-status", pollInterval = 3e4) {
       setError(false);
     } catch {
       setError(true);
+    } finally {
+      inFlight.current = false;
     }
   }, [apiPath]);
   (0, import_react.useEffect)(() => {

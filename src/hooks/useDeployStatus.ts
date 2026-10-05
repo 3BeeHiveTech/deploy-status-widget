@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { StatusResponse } from "../types";
 
 interface UseDeployStatusResult {
@@ -14,6 +14,8 @@ interface UseDeployStatusResult {
  * - Polls at the given interval (default 30s)
  * - Fetches immediately on mount and when the tab becomes visible
  * - Clears the interval on unmount
+ * - Skips a tick while the previous request is still in flight, so a slow
+ *   endpoint never accumulates overlapping requests
  * - Never throws — sets error state on failure
  *
  * @param apiPath - API endpoint path (default "/api/deploy-status")
@@ -26,7 +28,11 @@ export function useDeployStatus(
   const [data, setData] = useState<StatusResponse | null>(null);
   const [error, setError] = useState(false);
 
+  const inFlight = useRef(false);
+
   const fetchStatus = useCallback(async () => {
+    if (inFlight.current) return;
+    inFlight.current = true;
     try {
       const response = await fetch(apiPath);
       if (!response.ok) {
@@ -38,6 +44,8 @@ export function useDeployStatus(
       setError(false);
     } catch {
       setError(true);
+    } finally {
+      inFlight.current = false;
     }
   }, [apiPath]);
 

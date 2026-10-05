@@ -1,3 +1,9 @@
+// src/api/timeout.ts
+var UPSTREAM_TIMEOUT_MS = 8e3;
+function upstreamSignal() {
+  return AbortSignal.timeout(UPSTREAM_TIMEOUT_MS);
+}
+
 // src/api/vercel.ts
 var DEPLOYING_STATES = /* @__PURE__ */ new Set(["BUILDING", "QUEUED", "INITIALIZING"]);
 async function checkVercel(check, token, teamId) {
@@ -15,7 +21,9 @@ async function checkVercel(check, token, teamId) {
       {
         headers: {
           Authorization: `Bearer ${token}`
-        }
+        },
+        // Abort a hung upstream: the catch below turns it into status ERROR.
+        signal: upstreamSignal()
       }
     );
     if (!response.ok) {
@@ -74,8 +82,14 @@ async function checkGitHub(check, token) {
       "X-GitHub-Api-Version": "2022-11-28"
     };
     const [inProgressResponse, queuedResponse] = await Promise.all([
-      fetch(`${baseUrl}?status=in_progress&per_page=1`, { headers }),
-      fetch(`${baseUrl}?status=queued&per_page=1`, { headers })
+      fetch(`${baseUrl}?status=in_progress&per_page=1`, {
+        headers,
+        signal: upstreamSignal()
+      }),
+      fetch(`${baseUrl}?status=queued&per_page=1`, {
+        headers,
+        signal: upstreamSignal()
+      })
     ]);
     if (!inProgressResponse.ok || !queuedResponse.ok) {
       return {

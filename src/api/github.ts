@@ -1,4 +1,5 @@
 import type { GitHubCheck, CheckResult } from "../types";
+import { upstreamSignal } from "./timeout";
 
 /** GitHub Actions workflow runs response shape (subset of fields we need) */
 interface GitHubRunsResponse {
@@ -46,9 +47,17 @@ export async function checkGitHub(
       "X-GitHub-Api-Version": "2022-11-28",
     };
 
+    // One signal per request; a hung upstream aborts and the catch below turns
+    // it into status ERROR instead of stalling the whole handler.
     const [inProgressResponse, queuedResponse] = await Promise.all([
-      fetch(`${baseUrl}?status=in_progress&per_page=1`, { headers }),
-      fetch(`${baseUrl}?status=queued&per_page=1`, { headers }),
+      fetch(`${baseUrl}?status=in_progress&per_page=1`, {
+        headers,
+        signal: upstreamSignal(),
+      }),
+      fetch(`${baseUrl}?status=queued&per_page=1`, {
+        headers,
+        signal: upstreamSignal(),
+      }),
     ]);
 
     if (!inProgressResponse.ok || !queuedResponse.ok) {

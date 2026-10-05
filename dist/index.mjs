@@ -1,12 +1,15 @@
 // src/components/DeployStatusWidget.tsx
-import { useState as useState4, useCallback as useCallback2, useMemo as useMemo3, useEffect as useEffect4, useRef as useRef3 } from "react";
+import { useState as useState4, useCallback as useCallback2, useMemo as useMemo3, useEffect as useEffect4, useRef as useRef4 } from "react";
 
 // src/hooks/useDeployStatus.ts
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 function useDeployStatus(apiPath = "/api/deploy-status", pollInterval = 3e4) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(false);
+  const inFlight = useRef(false);
   const fetchStatus = useCallback(async () => {
+    if (inFlight.current) return;
+    inFlight.current = true;
     try {
       const response = await fetch(apiPath);
       if (!response.ok) {
@@ -18,6 +21,8 @@ function useDeployStatus(apiPath = "/api/deploy-status", pollInterval = 3e4) {
       setError(false);
     } catch {
       setError(true);
+    } finally {
+      inFlight.current = false;
     }
   }, [apiPath]);
   useEffect(() => {
@@ -42,7 +47,7 @@ function useDeployStatus(apiPath = "/api/deploy-status", pollInterval = 3e4) {
 }
 
 // src/components/StatusToast.tsx
-import { useState as useState3, useRef, useEffect as useEffect2, useLayoutEffect } from "react";
+import { useState as useState3, useRef as useRef2, useEffect as useEffect2, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import Draggable from "react-draggable";
 
@@ -322,8 +327,8 @@ function StatusToast({
   onDragStop
 }) {
   const [dismissHovered, setDismissHovered] = useState3(false);
-  const nodeRef = useRef(null);
-  const styleRef = useRef(null);
+  const nodeRef = useRef2(null);
+  const styleRef = useRef2(null);
   const headerDot = {
     ...headerDotStyle,
     backgroundColor: aggregate.color,
@@ -423,7 +428,7 @@ function StatusToast({
 }
 
 // src/components/StatusIcon.tsx
-import { useRef as useRef2, useEffect as useEffect3, useMemo as useMemo2 } from "react";
+import { useRef as useRef3, useEffect as useEffect3, useMemo as useMemo2 } from "react";
 import { createPortal as createPortal2 } from "react-dom";
 import Draggable2 from "react-draggable";
 import { jsx as jsx3, jsxs as jsxs3 } from "react/jsx-runtime";
@@ -434,9 +439,9 @@ function StatusIcon({
   position,
   onDragStop
 }) {
-  const nodeRef = useRef2(null);
-  const styleRef = useRef2(null);
-  const draggedRef = useRef2(false);
+  const nodeRef = useRef3(null);
+  const styleRef = useRef3(null);
+  const draggedRef = useRef3(false);
   useEffect3(() => {
     if (typeof document === "undefined") return;
     const existingStyle = document.getElementById("dsw-keyframes");
@@ -570,7 +575,7 @@ function DeployStatusWidget({
     () => data ? getAggregateStatus(data.checks) : null,
     [data]
   );
-  const onAggregateChangeRef = useRef3(onAggregateChange);
+  const onAggregateChangeRef = useRef4(onAggregateChange);
   onAggregateChangeRef.current = onAggregateChange;
   const aggregateKind = aggregate?.kind ?? null;
   useEffect4(() => {
